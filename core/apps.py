@@ -7,7 +7,9 @@ class CoreConfig(AppConfig):
     verbose_name = 'Brew & Spice CRM'
 
     def ready(self):
-        from django.contrib.auth.models import User
+        from django.contrib.auth import get_user_model
+
+        User = get_user_model()
 
         # Create admin user
         if not User.objects.filter(username='admin').exists():
