@@ -1,0 +1,21 @@
+{% extends 'core/base.html' %}
+{% block title %}Shop Settings{% endblock %}
+{% block page_title %}Shop Settings{% endblock %}
+
+{% block content %}
+<div class="card form-card">
+  <form method="post" novalidate>
+    {% csrf_token %}
+    {% for field in form %}
+      <div class="form-row">
+        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+        {{ field }}
+        {% if field.errors %}<div class="form-error">{{ field.errors|join:" " }}</div>{% endif %}
+      </div>
+    {% endfor %}
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary">Save Settings</button>
+    </div>
+  </form>
+</div>
+{% endblock %}

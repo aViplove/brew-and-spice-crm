@@ -1,0 +1,52 @@
+{% extends 'core/base.html' %}
+{% block title %}Orders · {{ shop.name }}{% endblock %}
+{% block page_title %}Orders{% endblock %}
+
+{% block content %}
+<div class="kpi-grid mini">
+  <div class="kpi kpi-green">
+    <div class="kpi-icon">💰</div>
+    <div class="kpi-body">
+      <div class="kpi-label">Today's Revenue</div>
+      <div class="kpi-value">₹{{ today_revenue|floatformat:0 }}</div>
+    </div>
+  </div>
+  <div class="kpi kpi-blue">
+    <div class="kpi-icon">🧾</div>
+    <div class="kpi-body">
+      <div class="kpi-label">Today's Orders</div>
+      <div class="kpi-value">{{ today_orders }}</div>
+    </div>
+  </div>
+</div>
+
+<div class="page-actions">
+  <h3 class="section-title">All Orders</h3>
+  <a class="btn btn-primary" href="{% url 'order_create' %}">+ New Order</a>
+</div>
+
+<div class="card">
+  <table class="table">
+    <thead>
+      <tr><th>#</th><th>Customer</th><th>Items</th><th>Total</th>
+          <th>Payment</th><th>Staff</th><th>Time</th></tr>
+    </thead>
+    <tbody>
+      {% for o in page %}
+      <tr>
+        <td><a href="{% url 'order_detail' o.pk %}" class="cell-strong">#{{ o.id }}</a></td>
+        <td>{{ o.customer.full_name|default:"Walk-in" }}</td>
+        <td>{{ o.items.count }}</td>
+        <td>₹{{ o.total|floatformat:0 }}</td>
+        <td><span class="pill pill-{{ o.payment_method }}">{{ o.get_payment_method_display }}</span></td>
+        <td>{{ o.staff.username|default:"—" }}</td>
+        <td class="muted">{{ o.created_at|date:"d M, H:i" }}</td>
+      </tr>
+      {% empty %}
+        <tr><td colspan="7" class="empty">No orders yet.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% include 'core/_pagination.html' with page=page %}
+</div>
+{% endblock %}

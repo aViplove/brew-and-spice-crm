@@ -1,0 +1,54 @@
+{% extends 'core/base.html' %}
+{% block title %}Footfall · {{ shop.name }}{% endblock %}
+{% block page_title %}Footfall Tracking{% endblock %}
+
+{% block content %}
+<div class="kpi-grid mini">
+  <div class="kpi kpi-amber">
+    <div class="kpi-icon">👣</div>
+    <div class="kpi-body">
+      <div class="kpi-label">Today's Visitors</div>
+      <div class="kpi-value">{{ today_total }}</div>
+    </div>
+  </div>
+  <div class="kpi kpi-purple">
+    <div class="kpi-icon">⏰</div>
+    <div class="kpi-body">
+      <div class="kpi-label">Peak Hour</div>
+      <div class="kpi-value sm">{{ peak_hour }}</div>
+    </div>
+  </div>
+</div>
+
+<div class="page-actions">
+  <h3 class="section-title">Recent Entries</h3>
+  <a class="btn btn-primary" href="{% url 'footfall_create' %}">+ Log Footfall</a>
+</div>
+
+<div class="card">
+  <table class="table">
+    <thead>
+      <tr><th>Entry Time</th><th>Exit Time</th><th>Visitors</th><th>Recorded by</th><th>Notes</th><th></th></tr>
+    </thead>
+    <tbody>
+      {% for f in page %}
+      <tr>
+        <td>{{ f.entry_time|date:"d M Y, H:i" }}</td>
+        <td>{{ f.exit_time|date:"H:i"|default:"—" }}</td>
+        <td><strong>{{ f.visitor_count }}</strong></td>
+        <td>{{ f.recorded_by.username|default:"—" }}</td>
+        <td class="muted">{{ f.notes|default:"—" }}</td>
+        <td class="row-actions">
+          {% if is_admin_user %}
+          <a href="{% url 'footfall_delete' f.pk %}" class="ico-btn danger" title="Delete">🗑</a>
+          {% endif %}
+        </td>
+      </tr>
+      {% empty %}
+        <tr><td colspan="6" class="empty">No footfall entries yet.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% include 'core/_pagination.html' with page=page %}
+</div>
+{% endblock %}

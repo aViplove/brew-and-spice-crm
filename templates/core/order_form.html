@@ -1,0 +1,157 @@
+{% extends 'core/base.html' %}
+{% block title %}New Order · {{ shop.name }}{% endblock %}
+{% block page_title %}New Order{% endblock %}
+
+{% block content %}
+<form method="post" id="orderForm">
+  {% csrf_token %}
+  <div class="order-layout">
+    <!-- LEFT — product picker -->
+    <div class="card order-products">
+      <div class="card-head">
+        <h3>Menu</h3>
+        <div class="filter-tabs" id="catTabs">
+          <button type="button" class="tab active" data-cat="all">All</button>
+          <button type="button" class="tab" data-cat="coffee">Coffee</button>
+          <button type="button" class="tab" data-cat="tea">Tea</button>
+          <button type="button" class="tab" data-cat="snacks">Snacks</button>
+          <button type="button" class="tab" data-cat="desserts">Desserts</button>
+        </div>
+      </div>
+
+      <div class="pos-grid" id="posGrid">
+        {% for p in products %}
+        <div class="pos-item" data-cat="{{ p.category }}" data-price="{{ p.price }}" data-name="{{ p.name }}" data-id="{{ p.id }}">
+          <div class="pos-emoji">
+            {% if p.category == 'coffee' %}☕
+            {% elif p.category == 'tea' %}🍵
+            {% elif p.category == 'snacks' %}🥪
+            {% else %}🍰{% endif %}
+          </div>
+          <div class="pos-name">{{ p.name }}</div>
+          <div class="pos-price">₹{{ p.price|floatformat:0 }}</div>
+          <input type="hidden" name="item_{{ p.id }}" value="0">
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- RIGHT — cart -->
+    <aside class="card order-cart">
+      <div class="card-head"><h3>Order</h3></div>
+
+      <div class="form-row">
+        <label>Customer (optional)</label>
+        <select name="customer">
+          <option value="">— Walk-in —</option>
+          {% for c in customers %}
+            <option value="{{ c.id }}">{{ c.full_name }} · {{ c.phone }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div id="cart" class="cart">
+        <div class="cart-empty">Tap items to add to the order.</div>
+      </div>
+
+      <div class="cart-total">
+        <span>Total</span>
+        <span class="cart-total-amount">₹<span id="cartTotal">0</span></span>
+      </div>
+
+      <div class="form-row">
+        <label>Payment Method</label>
+        <select name="payment_method" required>
+          <option value="cash">Cash</option>
+          <option value="card">Card</option>
+          <option value="upi" selected>UPI</option>
+          <option value="wallet">Wallet</option>
+        </select>
+      </div>
+
+      <div class="form-row">
+        <label>Notes</label>
+        <input type="text" name="notes" placeholder="Optional">
+      </div>
+
+      <div class="form-actions">
+        <a href="{% url 'order_list' %}" class="btn btn-ghost">Cancel</a>
+        <button type="submit" class="btn btn-primary btn-block">Place Order</button>
+      </div>
+    </aside>
+  </div>
+</form>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const cartEl = document.getElementById('cart');
+const totalEl = document.getElementById('cartTotal');
+const cart = {}; // id -> {name, price, qty}
+
+function renderCart(){
+  const ids = Object.keys(cart);
+  if(ids.length === 0){
+    cartEl.innerHTML = '<div class="cart-empty">Tap items to add to the order.</div>';
+    totalEl.textContent = '0';
+    return;
+  }
+  let total = 0;
+  cartEl.innerHTML = ids.map(id=>{
+    const it = cart[id];
+    const sub = it.price * it.qty;
+    total += sub;
+    return `<div class="cart-row">
+      <div class="cart-info">
+        <div class="cart-name">${it.name}</div>
+        <div class="cart-sub">₹${it.price} × ${it.qty} = ₹${sub.toFixed(0)}</div>
+      </div>
+      <div class="qty-ctrl">
+        <button type="button" data-id="${id}" data-act="dec">−</button>
+        <span>${it.qty}</span>
+        <button type="button" data-id="${id}" data-act="inc">+</button>
+      </div>
+    </div>`;
+  }).join('');
+  totalEl.textContent = total.toFixed(0);
+}
+
+document.querySelectorAll('#posGrid .pos-item').forEach(el=>{
+  el.addEventListener('click', ()=>{
+    const id = el.dataset.id;
+    if(!cart[id]) cart[id] = { name: el.dataset.name, price: parseFloat(el.dataset.price), qty: 0 };
+    cart[id].qty += 1;
+    document.querySelector(`input[name="item_${id}"]`).value = cart[id].qty;
+    el.classList.add('selected');
+    renderCart();
+  });
+});
+
+cartEl.addEventListener('click', e=>{
+  const btn = e.target.closest('button[data-act]');
+  if(!btn) return;
+  const id = btn.dataset.id;
+  if(btn.dataset.act === 'inc') cart[id].qty += 1;
+  else cart[id].qty = Math.max(0, cart[id].qty - 1);
+  if(cart[id].qty === 0) {
+    delete cart[id];
+    document.querySelector(`input[name="item_${id}"]`).value = 0;
+    document.querySelector(`.pos-item[data-id="${id}"]`).classList.remove('selected');
+  } else {
+    document.querySelector(`input[name="item_${id}"]`).value = cart[id].qty;
+  }
+  renderCart();
+});
+
+document.querySelectorAll('#catTabs .tab').forEach(t=>{
+  t.addEventListener('click', ()=>{
+    document.querySelectorAll('#catTabs .tab').forEach(x=>x.classList.remove('active'));
+    t.classList.add('active');
+    const c = t.dataset.cat;
+    document.querySelectorAll('#posGrid .pos-item').forEach(card=>{
+      card.style.display = (c==='all' || card.dataset.cat===c) ? '' : 'none';
+    });
+  });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,52 @@
+{% extends 'core/base.html' %}
+{% block title %}Order #{{ order.id }}{% endblock %}
+{% block page_title %}Order #{{ order.id }}{% endblock %}
+
+{% block content %}
+<div class="card receipt">
+  <div class="receipt-head">
+    <div>
+      <h2>{{ shop.name }}</h2>
+      <div class="muted">{{ shop.address }}</div>
+    </div>
+    <div class="text-right">
+      <div class="muted">Order</div>
+      <div class="receipt-number">#{{ order.id }}</div>
+      <div class="muted">{{ order.created_at|date:"d M Y, H:i" }}</div>
+    </div>
+  </div>
+
+  <div class="receipt-meta">
+    <div><strong>Customer:</strong> {{ order.customer.full_name|default:"Walk-in" }}</div>
+    <div><strong>Staff:</strong> {{ order.staff.username|default:"—" }}</div>
+    <div><strong>Payment:</strong> <span class="pill pill-{{ order.payment_method }}">{{ order.get_payment_method_display }}</span></div>
+  </div>
+
+  <table class="table receipt-table">
+    <thead><tr><th>Item</th><th>Qty</th><th>Price</th><th>Subtotal</th></tr></thead>
+    <tbody>
+      {% for it in order.items.all %}
+      <tr>
+        <td>{{ it.product.name }}</td>
+        <td>{{ it.quantity }}</td>
+        <td>₹{{ it.unit_price|floatformat:0 }}</td>
+        <td>₹{{ it.subtotal|floatformat:0 }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+    <tfoot>
+      <tr>
+        <td colspan="3" class="text-right"><strong>Total</strong></td>
+        <td><strong>₹{{ order.total|floatformat:0 }}</strong></td>
+      </tr>
+    </tfoot>
+  </table>
+
+  {% if order.notes %}<div class="notes"><strong>Notes:</strong> {{ order.notes }}</div>{% endif %}
+
+  <div class="form-actions">
+    <a href="{% url 'order_list' %}" class="btn btn-ghost">← Back to orders</a>
+    <a href="{% url 'order_create' %}" class="btn btn-primary">+ New Order</a>
+  </div>
+</div>
+{% endblock %}

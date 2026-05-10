@@ -1,0 +1,51 @@
+{% extends 'core/base.html' %}
+{% block title %}Customers · {{ shop.name }}{% endblock %}
+{% block page_title %}Customers{% endblock %}
+
+{% block content %}
+<div class="page-actions">
+  <form method="get" class="search-bar">
+    <input type="text" name="q" placeholder="Search by name, phone or email…" value="{{ q }}">
+    <button type="submit" class="btn btn-ghost">Search</button>
+    {% if q %}<a href="{% url 'customer_list' %}" class="btn btn-ghost">Clear</a>{% endif %}
+  </form>
+  <a class="btn btn-primary" href="{% url 'customer_create' %}">+ Add Customer</a>
+</div>
+
+<div class="card">
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Name</th><th>Phone</th><th>Favorite Drink</th>
+        <th>Visits</th><th>Loyalty Pts</th><th>Joined</th><th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for c in page %}
+      <tr>
+        <td>
+          <a href="{% url 'customer_detail' c.pk %}" class="cell-strong">{{ c.full_name }}</a>
+          {% if c.is_returning %}<span class="pill pill-good">Returning</span>{% endif %}
+        </td>
+        <td>{{ c.phone }}</td>
+        <td>{{ c.favorite_drink|default:"—" }}</td>
+        <td>{{ c.total_visits }}</td>
+        <td>{{ c.loyalty_points }}</td>
+        <td class="muted">{{ c.created_at|date:"d M Y" }}</td>
+        <td class="row-actions">
+          <a href="{% url 'customer_detail' c.pk %}" class="ico-btn" title="View">👁</a>
+          <a href="{% url 'customer_edit' c.pk %}" class="ico-btn" title="Edit">✎</a>
+          {% if is_admin_user %}
+          <a href="{% url 'customer_delete' c.pk %}" class="ico-btn danger" title="Delete">🗑</a>
+          {% endif %}
+        </td>
+      </tr>
+      {% empty %}
+        <tr><td colspan="7" class="empty">No customers yet. Add the first one!</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  {% include 'core/_pagination.html' with page=page %}
+</div>
+{% endblock %}

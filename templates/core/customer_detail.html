@@ -1,0 +1,48 @@
+{% extends 'core/base.html' %}
+{% block title %}{{ customer.full_name }}{% endblock %}
+{% block page_title %}{{ customer.full_name }}{% endblock %}
+
+{% block content %}
+<div class="grid-2">
+  <div class="card">
+    <div class="card-head"><h3>Profile</h3>
+      <a href="{% url 'customer_edit' customer.pk %}" class="btn btn-ghost">Edit</a>
+    </div>
+    <dl class="kv">
+      <dt>Phone</dt><dd>{{ customer.phone }}</dd>
+      <dt>Email</dt><dd>{{ customer.email|default:"—" }}</dd>
+      <dt>Favorite Drink</dt><dd>{{ customer.favorite_drink|default:"—" }}</dd>
+      <dt>Birthday</dt><dd>{{ customer.birthday|default:"—" }}</dd>
+      <dt>Loyalty Points</dt><dd><strong>{{ customer.loyalty_points }}</strong></dd>
+      <dt>Total Visits</dt><dd>{{ customer.total_visits }}</dd>
+      <dt>Total Spent</dt><dd>₹{{ customer.total_spent|floatformat:2 }}</dd>
+      <dt>Joined</dt><dd>{{ customer.created_at|date:"d M Y" }}</dd>
+    </dl>
+    {% if customer.notes %}
+    <div class="notes">
+      <strong>Notes</strong>
+      <p>{{ customer.notes }}</p>
+    </div>
+    {% endif %}
+  </div>
+
+  <div class="card">
+    <div class="card-head"><h3>Visit History</h3></div>
+    <table class="table">
+      <thead><tr><th>Order</th><th>Items</th><th>Total</th><th>Date</th></tr></thead>
+      <tbody>
+        {% for o in orders %}
+        <tr>
+          <td><a href="{% url 'order_detail' o.pk %}">#{{ o.id }}</a></td>
+          <td>{{ o.items.count }}</td>
+          <td>₹{{ o.total|floatformat:0 }}</td>
+          <td class="muted">{{ o.created_at|date:"d M Y, H:i" }}</td>
+        </tr>
+        {% empty %}
+          <tr><td colspan="4" class="empty">No orders yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

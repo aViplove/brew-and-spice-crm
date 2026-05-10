@@ -1,0 +1,168 @@
+{% extends 'core/base.html' %}
+{% load static %}
+{% block title %}Dashboard · {{ shop.name }}{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+
+{% block content %}
+<!-- KPI Cards -->
+<section class="kpi-grid">
+  <div class="kpi kpi-amber">
+    <div class="kpi-icon">👣</div>
+    <div class="kpi-body">
+      <div class="kpi-label">Today's Footfall</div>
+      <div class="kpi-value" id="kpi-footfall">{{ today_footfall }}</div>
+      <div class="kpi-sub">visitors today</div>
+    </div>
+  </div>
+
+  <div class="kpi kpi-green">
+    <div class="kpi-icon">💰</div>
+    <div class="kpi-body">
+      <div class="kpi-label">Today's Revenue</div>
+      <div class="kpi-value">₹<span id="kpi-revenue">{{ today_revenue|floatformat:0 }}</span></div>
+      <div class="kpi-sub">since 00:00</div>
+    </div>
+  </div>
+
+  <div class="kpi kpi-blue">
+    <div class="kpi-icon">👥</div>
+    <div class="kpi-body">
+      <div class="kpi-label">Total Customers</div>
+      <div class="kpi-value">{{ total_customers }}</div>
+      <div class="kpi-sub">all-time</div>
+    </div>
+  </div>
+
+  <div class="kpi kpi-purple">
+    <div class="kpi-icon">⏰</div>
+    <div class="kpi-body">
+      <div class="kpi-label">Peak Hour Today</div>
+      <div class="kpi-value sm">{{ peak_hour_label }}</div>
+      <div class="kpi-sub">busiest slot</div>
+    </div>
+  </div>
+
+  <div class="kpi kpi-pink">
+    <div class="kpi-icon">🔁</div>
+    <div class="kpi-body">
+      <div class="kpi-label">Returning Customers</div>
+      <div class="kpi-value">{{ returning_customers }}</div>
+      <div class="kpi-sub">2+ visits</div>
+    </div>
+  </div>
+</section>
+
+<!-- Charts row 1 -->
+<section class="grid-2">
+  <div class="card">
+    <div class="card-head">
+      <h3>Weekly Footfall</h3>
+      <span class="muted">last 7 days</span>
+    </div>
+    <canvas id="weeklyFootfallChart" height="120"></canvas>
+  </div>
+
+  <div class="card">
+    <div class="card-head">
+      <h3>Hourly Footfall — Today</h3>
+      <span class="muted">peak hour highlighted</span>
+    </div>
+    <canvas id="hourlyFootfallChart" height="120"></canvas>
+  </div>
+</section>
+
+<!-- Charts row 2 -->
+<section class="grid-2">
+  <div class="card">
+    <div class="card-head">
+      <h3>Revenue Trend</h3>
+      <span class="muted">last 14 days</span>
+    </div>
+    <canvas id="revenueChart" height="120"></canvas>
+  </div>
+
+  <div class="card">
+    <div class="card-head">
+      <h3>Top-Selling Products</h3>
+      <span class="muted">last 30 days</span>
+    </div>
+    <canvas id="topProductsChart" height="120"></canvas>
+  </div>
+</section>
+
+<!-- Heatmap -->
+<section class="card">
+  <div class="card-head">
+    <h3>Busy-Hour Heatmap</h3>
+    <span class="muted">last 4 weeks · weekday × hour</span>
+  </div>
+  <div id="heatmap"></div>
+</section>
+
+<!-- Tables row -->
+<section class="grid-2">
+  <div class="card">
+    <div class="card-head">
+      <h3>Recent Orders</h3>
+      <a class="link" href="{% url 'order_list' %}">View all →</a>
+    </div>
+    <table class="table">
+      <thead>
+        <tr><th>#</th><th>Customer</th><th>Total</th><th>Method</th><th>Time</th></tr>
+      </thead>
+      <tbody>
+        {% for o in recent_orders %}
+        <tr>
+          <td><a href="{% url 'order_detail' o.pk %}">#{{ o.id }}</a></td>
+          <td>{{ o.customer.full_name|default:'Walk-in' }}</td>
+          <td>₹{{ o.total|floatformat:0 }}</td>
+          <td><span class="pill pill-{{ o.payment_method }}">{{ o.get_payment_method_display }}</span></td>
+          <td class="muted">{{ o.created_at|date:"d M, H:i" }}</td>
+        </tr>
+        {% empty %}
+          <tr><td colspan="5" class="empty">No orders yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <div class="card-head">
+      <h3>Low Stock Alerts</h3>
+      <a class="link" href="{% url 'inventory_list' %}">View inventory →</a>
+    </div>
+    <table class="table">
+      <thead>
+        <tr><th>Item</th><th>Quantity</th><th>Min</th><th>Status</th></tr>
+      </thead>
+      <tbody>
+        {% for it in low_stock_items %}
+        <tr>
+          <td>{{ it.item_name }}</td>
+          <td>{{ it.quantity }} {{ it.unit }}</td>
+          <td class="muted">{{ it.minimum_stock }}</td>
+          <td><span class="pill pill-warn">Low</span></td>
+        </tr>
+        {% empty %}
+          <tr><td colspan="4" class="empty">All items are well stocked. ✅</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- Inline JSON for charts -->
+{{ weekly_labels|json_script:"weekly-labels" }}
+{{ weekly_data|json_script:"weekly-data" }}
+{{ hourly_labels|json_script:"hourly-labels" }}
+{{ hourly_data|json_script:"hourly-data" }}
+{{ revenue_labels|json_script:"revenue-labels" }}
+{{ revenue_data|json_script:"revenue-data" }}
+{{ top_product_labels|json_script:"top-product-labels" }}
+{{ top_product_data|json_script:"top-product-data" }}
+{{ heatmap_data|json_script:"heatmap-data" }}
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/dashboard.js' %}" defer></script>
+{% endblock %}

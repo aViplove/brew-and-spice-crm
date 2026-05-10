@@ -1,0 +1,45 @@
+{% extends 'core/base.html' %}
+{% block title %}Adjust {{ item.item_name }}{% endblock %}
+{% block page_title %}Adjust Stock — {{ item.item_name }}{% endblock %}
+
+{% block content %}
+<div class="grid-2">
+  <div class="card form-card">
+    <div class="card-head"><h3>Current: {{ item.quantity }} {{ item.get_unit_display }}</h3></div>
+    <form method="post" novalidate>
+      {% csrf_token %}
+      {% for field in form %}
+        <div class="form-row">
+          <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+          {{ field }}
+          {% if field.errors %}<div class="form-error">{{ field.errors|join:" " }}</div>{% endif %}
+        </div>
+      {% endfor %}
+      <div class="form-actions">
+        <a href="{% url 'inventory_list' %}" class="btn btn-ghost">Cancel</a>
+        <button type="submit" class="btn btn-primary">Apply</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="card">
+    <div class="card-head"><h3>Stock History</h3></div>
+    <table class="table">
+      <thead><tr><th>When</th><th>Action</th><th>Change</th><th>New Qty</th><th>By</th></tr></thead>
+      <tbody>
+        {% for log in logs %}
+        <tr>
+          <td class="muted">{{ log.created_at|date:"d M, H:i" }}</td>
+          <td>{{ log.get_action_display }}</td>
+          <td>{{ log.quantity_change }}</td>
+          <td>{{ log.new_quantity }}</td>
+          <td>{{ log.user.username|default:"—" }}</td>
+        </tr>
+        {% empty %}
+          <tr><td colspan="5" class="empty">No history yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

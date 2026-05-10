@@ -1,0 +1,48 @@
+{% extends 'core/base.html' %}
+{% block title %}Staff · {{ shop.name }}{% endblock %}
+{% block page_title %}Staff Members{% endblock %}
+
+{% block content %}
+<div class="page-actions">
+  <h3 class="section-title">All Users</h3>
+  <a class="btn btn-primary" href="{% url 'staff_create' %}">+ Add Staff</a>
+</div>
+
+<div class="card">
+  <table class="table">
+    <thead>
+      <tr><th>Username</th><th>Name</th><th>Email</th><th>Role</th><th>Status</th><th>Joined</th><th></th></tr>
+    </thead>
+    <tbody>
+      {% for u in staff %}
+      <tr>
+        <td class="cell-strong">{{ u.username }}</td>
+        <td>{{ u.first_name }} {{ u.last_name }}</td>
+        <td>{{ u.email|default:"—" }}</td>
+        <td>
+          {% if u.role == 'admin' or u.is_superuser %}
+            <span class="pill pill-good">Admin</span>
+          {% else %}
+            <span class="pill pill-blue">Staff</span>
+          {% endif %}
+        </td>
+        <td>
+          {% if u.is_active %}
+            <span class="pill pill-good">Active</span>
+          {% else %}
+            <span class="pill pill-warn">Inactive</span>
+          {% endif %}
+        </td>
+        <td class="muted">{{ u.date_joined|date:"d M Y" }}</td>
+        <td class="row-actions">
+          <a href="{% url 'staff_edit' u.pk %}" class="ico-btn" title="Edit">✎</a>
+          {% if u != request.user %}
+          <a href="{% url 'staff_delete' u.pk %}" class="ico-btn danger" title="Delete">🗑</a>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

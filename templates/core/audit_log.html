@@ -1,0 +1,27 @@
+{% extends 'core/base.html' %}
+{% block title %}Audit Log{% endblock %}
+{% block page_title %}Audit Log{% endblock %}
+
+{% block content %}
+<div class="card">
+  <table class="table">
+    <thead>
+      <tr><th>Timestamp</th><th>User</th><th>Action</th><th>Description</th><th>IP</th></tr>
+    </thead>
+    <tbody>
+      {% for log in page %}
+      <tr>
+        <td class="muted">{{ log.timestamp|date:"d M Y, H:i:s" }}</td>
+        <td>{{ log.user.username|default:"system" }}</td>
+        <td><span class="pill pill-blue">{{ log.action }}</span></td>
+        <td>{{ log.description }}</td>
+        <td class="muted">{{ log.ip_address|default:"—" }}</td>
+      </tr>
+      {% empty %}
+        <tr><td colspan="5" class="empty">No audit entries yet.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% include 'core/_pagination.html' with page=page %}
+</div>
+{% endblock %}

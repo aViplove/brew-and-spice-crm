@@ -1,0 +1,49 @@
+{% extends 'core/base.html' %}
+{% block title %}Inventory · {{ shop.name }}{% endblock %}
+{% block page_title %}Inventory{% endblock %}
+
+{% block content %}
+{% if low_stock_count > 0 %}
+<div class="alert alert-warn">⚠ <strong>{{ low_stock_count }}</strong> item(s) at or below minimum stock.</div>
+{% endif %}
+
+<div class="page-actions">
+  <h3 class="section-title">Stock Items</h3>
+  {% if is_admin_user %}<a class="btn btn-primary" href="{% url 'inventory_create' %}">+ Add Item</a>{% endif %}
+</div>
+
+<div class="card">
+  <table class="table">
+    <thead>
+      <tr><th>Item</th><th>Quantity</th><th>Min Stock</th><th>Vendor</th><th>Last Updated</th><th>Status</th><th></th></tr>
+    </thead>
+    <tbody>
+      {% for it in items %}
+      <tr {% if it.is_low_stock %}class="row-warn"{% endif %}>
+        <td class="cell-strong">{{ it.item_name }}</td>
+        <td>{{ it.quantity }} {{ it.get_unit_display }}</td>
+        <td class="muted">{{ it.minimum_stock }} {{ it.unit }}</td>
+        <td>{{ it.vendor|default:"—" }}</td>
+        <td class="muted">{{ it.last_updated|date:"d M, H:i" }}</td>
+        <td>
+          {% if it.is_low_stock %}
+            <span class="pill pill-warn">Low</span>
+          {% else %}
+            <span class="pill pill-good">OK</span>
+          {% endif %}
+        </td>
+        <td class="row-actions">
+          <a href="{% url 'inventory_adjust' it.pk %}" class="btn btn-ghost btn-sm">Adjust</a>
+          {% if is_admin_user %}
+          <a href="{% url 'inventory_edit' it.pk %}" class="ico-btn" title="Edit">✎</a>
+          <a href="{% url 'inventory_delete' it.pk %}" class="ico-btn danger" title="Delete">🗑</a>
+          {% endif %}
+        </td>
+      </tr>
+      {% empty %}
+        <tr><td colspan="7" class="empty">No inventory items yet.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

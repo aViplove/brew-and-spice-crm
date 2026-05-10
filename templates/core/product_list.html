@@ -1,0 +1,73 @@
+{% extends 'core/base.html' %}
+{% block title %}Menu · {{ shop.name }}{% endblock %}
+{% block page_title %}Menu{% endblock %}
+
+{% block content %}
+<div class="page-actions">
+  <div class="filter-tabs" id="catTabs">
+    <button class="tab active" data-cat="all">All</button>
+    <button class="tab" data-cat="coffee">Coffee</button>
+    <button class="tab" data-cat="tea">Tea</button>
+    <button class="tab" data-cat="snacks">Snacks</button>
+    <button class="tab" data-cat="desserts">Desserts</button>
+  </div>
+  {% if is_admin_user %}
+    <a class="btn btn-primary" href="{% url 'product_create' %}">+ Add Product</a>
+  {% endif %}
+</div>
+
+<div class="product-grid" id="productGrid">
+  {% for p in products %}
+  <div class="product-card" data-cat="{{ p.category }}">
+    <div class="product-img">
+      {% if p.image %}
+        <img src="{{ p.image.url }}" alt="{{ p.name }}">
+      {% else %}
+        <div class="product-placeholder">
+          {% if p.category == 'coffee' %}☕
+          {% elif p.category == 'tea' %}🍵
+          {% elif p.category == 'snacks' %}🥪
+          {% else %}🍰{% endif %}
+        </div>
+      {% endif %}
+      {% if not p.available %}
+        <span class="ribbon">Unavailable</span>
+      {% endif %}
+    </div>
+    <div class="product-body">
+      <div class="product-cat">{{ p.get_category_display }}</div>
+      <div class="product-name">{{ p.name }}</div>
+      <div class="product-price">₹{{ p.price|floatformat:0 }}</div>
+      {% if p.description %}<p class="product-desc">{{ p.description }}</p>{% endif %}
+      {% if is_admin_user %}
+      <div class="product-actions">
+        <a href="{% url 'product_edit' p.pk %}" class="btn btn-ghost btn-sm">Edit</a>
+        <form method="post" action="{% url 'product_toggle' p.pk %}" style="display:inline;">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-ghost btn-sm">{% if p.available %}Hide{% else %}Show{% endif %}</button>
+        </form>
+        <a href="{% url 'product_delete' p.pk %}" class="btn btn-ghost btn-sm danger">Delete</a>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+  {% empty %}
+    <div class="empty card">No products yet.</div>
+  {% endfor %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.querySelectorAll('#catTabs .tab').forEach(t=>{
+  t.addEventListener('click',()=>{
+    document.querySelectorAll('#catTabs .tab').forEach(x=>x.classList.remove('active'));
+    t.classList.add('active');
+    const c=t.dataset.cat;
+    document.querySelectorAll('#productGrid .product-card').forEach(card=>{
+      card.style.display=(c==='all'||card.dataset.cat===c)?'':'none';
+    });
+  });
+});
+</script>
+{% endblock %}

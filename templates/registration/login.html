@@ -1,0 +1,39 @@
+{% extends 'core/base.html' %}
+{% load static %}
+{% block title %}Sign in · {{ shop.name }}{% endblock %}
+
+{% block auth_content %}
+<div class="auth-wrap">
+  <div class="auth-card">
+    <div class="auth-brand">
+      <div class="brand-mark big">B<span>&amp;</span>S</div>
+      <h1 class="auth-name">{{ shop.name }}</h1>
+      <p class="auth-tagline">{{ shop.tagline }}</p>
+    </div>
+
+    {% if messages %}
+      {% for m in messages %}
+        <div class="msg msg-{{ m.tags }}">{{ m }}</div>
+      {% endfor %}
+    {% endif %}
+
+    <form method="post" class="auth-form">
+      {% csrf_token %}
+      <label>Username
+        <input type="text" name="username" autocomplete="username" required autofocus>
+      </label>
+      <label>Password
+        <input type="password" name="password" autocomplete="current-password" required>
+      </label>
+      <button class="btn btn-primary btn-block" type="submit">Sign in</button>
+    </form>
+
+    <div class="auth-hint">
+      <strong>Demo logins</strong><br>
+      Admin · <code>admin / admin123</code><br>
+      Staff · <code>barista / staff123</code>
+    </div>
+  </div>
+  <div class="auth-bg"></div>
+</div>
+{% endblock %}
